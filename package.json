@@ -1,0 +1,36 @@
+{
+  "name": "camunda-modeler-templates-from-palette-plugin",
+  "version": "0.1.0",
+  "description": "Camunda Modeler plugin to create templated elements directly from the palette",
+  "main": "index.js",
+  "scripts": {
+    "all": "run-s lint bundle",
+    "bundle": "webpack",
+    "dev": "webpack -w",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxTru/camunda-modeler-templates-from-palette-plugin.git"
+  },
+  "keywords": [
+    "camunda",
+    "modeler",
+    "plugin"
+  ],
+  "author": "maxtru",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MaxTru/camunda-modeler-templates-from-palette-plugin/issues"
+  },
+  "homepage": "https://github.com/MaxTru/camunda-modeler-templates-from-palette-plugin#readme",
+  "devDependencies": {
+    "camunda-modeler-plugin-helpers": "^3.1.0",
+    "domify": "^1.4.1",
+    "eslint": "^7.32.0",
+    "eslint-plugin-bpmn-io": "^0.12.0",
+    "npm-run-all": "^4.1.5",
+    "webpack": "^5.50.0",
+    "webpack-cli": "^4.7.2"
+  }
+}
