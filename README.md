@@ -1,0 +1,1 @@
+# camunda-modeler-templates-from-palette-plugin
