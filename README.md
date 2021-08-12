@@ -1,5 +1,7 @@
 # Camunda Modeler Templates from Palette Plugin
 
+![Build Status](https://github.com/MaxTru/camunda-modeler-templates-from-palette-plugin/actions/workflows/test.yml/badge.svg) [![Modeler version 4.9](https://img.shields.io/badge/Camunda%20Modeler-4.9+-blue.svg)](https://github.com/camunda/camunda-modeler)
+
 A plugin for the [Camunda Modeler](https://github.com/camunda/camunda-modeler)
 which allows you to directly create templated elements from the palette. It re-uses
 existing [element templates](https://github.com/camunda/camunda-modeler/tree/develop/docs/element-templates).
