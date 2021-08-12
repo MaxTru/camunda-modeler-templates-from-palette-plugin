@@ -1,6 +1,7 @@
 import { TEMPLATE_SYMBOL } from './TemplateSymbol';
 
-export default class CustomPalette {
+
+export default class PaletteExtension {
   constructor(eventBus, palette, translate) {
     this.eventBus = eventBus;
     this.translate = translate;
@@ -17,12 +18,12 @@ export default class CustomPalette {
     function createFromElementTemplate() {
       return function(event) {
 
-        eventBus.fire('create.from-element-template', { paletteEvent: event });
+        eventBus.fire('templates-palette-plugin.create-from-element-template', { originEvent: event });
       };
     }
 
     return {
-      'create.from-element-template': {
+      'templates-palette-plugin.create-from-element-template': {
         group: 'extension',
         imageUrl: TEMPLATE_SYMBOL,
         title: translate('Create Task from Element Template'),
@@ -35,7 +36,7 @@ export default class CustomPalette {
   }
 }
 
-CustomPalette.$inject = [
+PaletteExtension.$inject = [
   'eventBus',
   'palette',
   'translate'

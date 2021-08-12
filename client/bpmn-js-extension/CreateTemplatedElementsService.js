@@ -7,13 +7,17 @@ const UNSUPPORTED_TYPES = [
   'bpmn:MessageFlow'
 ];
 
+const APPEND_ACTION = 'templates-palette-plugin.append-from-element-template';
+const CREATE_ACTION = 'templates-palette-plugin.create-from-element-template';
+
 const emptyOption = domify('<option value=""></option>');
 emptyOption.innerText = '<select one>';
 
 
 export default class _createTemplatedElementsService {
 
-  constructor(bpmnFactory, canvas, commandStack, create, elementFactory, elementTemplates, eventBus) {
+  constructor(autoPlace, bpmnFactory, canvas, commandStack, create, elementFactory, elementTemplates, eventBus) {
+    this.autoPlace = autoPlace;
     this.bpmnFactory = bpmnFactory;
     this.canvas = canvas;
     this.commandStack = commandStack;
@@ -29,10 +33,10 @@ export default class _createTemplatedElementsService {
 
 
   init() {
-    this._registerEventListener((event) => {
+    this._registerEventListener((event, element) => {
       this.updateElementTemplates();
-      this._createDropdown();
-      this._registerCreateTemplateAction(event);
+      this._createDropdown(event);
+      this._registerCreateTemplateAction(event, element);
     });
   }
 
@@ -53,24 +57,20 @@ export default class _createTemplatedElementsService {
       eventBus
     } = this;
 
-    eventBus.once('create.from-element-template', function(event) {
+    eventBus.once([ CREATE_ACTION, APPEND_ACTION ], function(event) {
       const {
-        paletteEvent
+        originEvent,
+        element
       } = event;
 
-      func(paletteEvent);
+      func(originEvent, element);
     });
   }
 
-  _createDropdown(paletteEvent) {
+  _createDropdown(event) {
     const {
-      canvas,
       eventBus
     } = this;
-
-    const container = canvas._container;
-
-    const paletteEntryEle = container.querySelector('.djs-palette-entries [data-action="create.from-element-template"]');
 
     const dropDownEle = domify(
       `<div class="templates-palette-plugin"><label for="elementTemplates">Available Templates:</label>
@@ -87,7 +87,7 @@ export default class _createTemplatedElementsService {
       select.appendChild(option);
     });
 
-    paletteEntryEle.appendChild(dropDownEle);
+    event.delegateTarget.appendChild(dropDownEle);
 
     eventBus.once([ 'element.click', 'create.init' ], (context) => {
       dropDownEle.remove();
@@ -96,39 +96,47 @@ export default class _createTemplatedElementsService {
     });
   }
 
-  _registerCreateTemplateAction(paletteEvent) {
+  _registerCreateTemplateAction(event, element) {
     const {
       canvas
     } = this;
 
     const select = canvas._container.querySelector('.templates-palette-plugin select');
-    console.log(select);
-    select.addEventListener('change', () => this._createTemplatedElement(paletteEvent, select.value));
+    select.addEventListener('change', () => this._createTemplatedElement(event, element, select.value));
   }
 
-  _createTemplatedElement(event, templateId) {
+  _createTemplatedElement(event, element, templateId) {
     const {
+      autoPlace,
       commandStack,
       create,
       elementFactory
     } = this;
 
+    const action = event.delegateTarget.getAttribute('data-action');
+
     const template = this._elementTemplates.find(temp => temp.id === templateId),
           type = template.appliesTo[0];
 
-    const element = elementFactory.createShape({ type });
+    const shape = elementFactory.createShape({ type });
 
     commandStack.execute('propertiesPanel.camunda.changeTemplate', {
-      element,
+      element: shape,
       newTemplate: template
     });
 
-    create.start(event, element);
+    if (action === CREATE_ACTION) {
+      create.start(event, shape);
+    } else if (action === APPEND_ACTION) {
+      autoPlace.append(element, shape);
+    }
+
   }
 
 }
 
 _createTemplatedElementsService.$inject = [
+  'autoPlace',
   'bpmnFactory',
   'canvas',
   'commandStack',

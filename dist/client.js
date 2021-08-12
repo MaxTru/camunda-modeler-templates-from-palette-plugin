@@ -1,6 +1,65 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./client/bpmn-js-extension/ContextPadExtension.js":
+/*!*********************************************************!*\
+  !*** ./client/bpmn-js-extension/ContextPadExtension.js ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ContextPadExtension)
+/* harmony export */ });
+/* harmony import */ var _TemplateSymbol__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./TemplateSymbol */ "./client/bpmn-js-extension/TemplateSymbol.js");
+
+
+
+class ContextPadExtension {
+  constructor(contextPad, eventBus, translate) {
+    this.contextPad = contextPad;
+    this.eventBus = eventBus;
+    this.translate = translate;
+
+    contextPad.registerProvider(this);
+  }
+
+  getContextPadEntries(element) {
+    const {
+      eventBus,
+      translate
+    } = this;
+
+    function createFromElementTemplate() {
+      return function(event) {
+
+        eventBus.fire('templates-palette-plugin.append-from-element-template', { originEvent: event, element });
+      };
+    }
+
+    return {
+      'templates-palette-plugin.append-from-element-template': {
+        group: 'model',
+        imageUrl: _TemplateSymbol__WEBPACK_IMPORTED_MODULE_0__.TEMPLATE_SYMBOL,
+        title: translate('Append templated Element'),
+        action: {
+          click: createFromElementTemplate()
+        }
+      }
+    };
+  }
+}
+
+ContextPadExtension.$inject = [
+  'contextPad',
+  'eventBus',
+  'translate'
+];
+
+
+/***/ }),
+
 /***/ "./client/bpmn-js-extension/CreateTemplatedElementsService.js":
 /*!********************************************************************!*\
   !*** ./client/bpmn-js-extension/CreateTemplatedElementsService.js ***!
@@ -23,13 +82,17 @@ const UNSUPPORTED_TYPES = [
   'bpmn:MessageFlow'
 ];
 
+const APPEND_ACTION = 'templates-palette-plugin.append-from-element-template';
+const CREATE_ACTION = 'templates-palette-plugin.create-from-element-template';
+
 const emptyOption = domify__WEBPACK_IMPORTED_MODULE_0___default()('<option value=""></option>');
 emptyOption.innerText = '<select one>';
 
 
 class _createTemplatedElementsService {
 
-  constructor(bpmnFactory, canvas, commandStack, create, elementFactory, elementTemplates, eventBus) {
+  constructor(autoPlace, bpmnFactory, canvas, commandStack, create, elementFactory, elementTemplates, eventBus) {
+    this.autoPlace = autoPlace;
     this.bpmnFactory = bpmnFactory;
     this.canvas = canvas;
     this.commandStack = commandStack;
@@ -45,10 +108,10 @@ class _createTemplatedElementsService {
 
 
   init() {
-    this._registerEventListener((event) => {
+    this._registerEventListener((event, element) => {
       this.updateElementTemplates();
-      this._createDropdown();
-      this._registerCreateTemplateAction(event);
+      this._createDropdown(event);
+      this._registerCreateTemplateAction(event, element);
     });
   }
 
@@ -69,24 +132,20 @@ class _createTemplatedElementsService {
       eventBus
     } = this;
 
-    eventBus.once('create.from-element-template', function(event) {
+    eventBus.once([ CREATE_ACTION, APPEND_ACTION ], function(event) {
       const {
-        paletteEvent
+        originEvent,
+        element
       } = event;
 
-      func(paletteEvent);
+      func(originEvent, element);
     });
   }
 
-  _createDropdown(paletteEvent) {
+  _createDropdown(event) {
     const {
-      canvas,
       eventBus
     } = this;
-
-    const container = canvas._container;
-
-    const paletteEntryEle = container.querySelector('.djs-palette-entries [data-action="create.from-element-template"]');
 
     const dropDownEle = domify__WEBPACK_IMPORTED_MODULE_0___default()(
       `<div class="templates-palette-plugin"><label for="elementTemplates">Available Templates:</label>
@@ -103,7 +162,7 @@ class _createTemplatedElementsService {
       select.appendChild(option);
     });
 
-    paletteEntryEle.appendChild(dropDownEle);
+    event.delegateTarget.appendChild(dropDownEle);
 
     eventBus.once([ 'element.click', 'create.init' ], (context) => {
       dropDownEle.remove();
@@ -112,39 +171,47 @@ class _createTemplatedElementsService {
     });
   }
 
-  _registerCreateTemplateAction(paletteEvent) {
+  _registerCreateTemplateAction(event, element) {
     const {
       canvas
     } = this;
 
     const select = canvas._container.querySelector('.templates-palette-plugin select');
-    console.log(select);
-    select.addEventListener('change', () => this._createTemplatedElement(paletteEvent, select.value));
+    select.addEventListener('change', () => this._createTemplatedElement(event, element, select.value));
   }
 
-  _createTemplatedElement(event, templateId) {
+  _createTemplatedElement(event, element, templateId) {
     const {
+      autoPlace,
       commandStack,
       create,
       elementFactory
     } = this;
 
+    const action = event.delegateTarget.getAttribute('data-action');
+
     const template = this._elementTemplates.find(temp => temp.id === templateId),
           type = template.appliesTo[0];
 
-    const element = elementFactory.createShape({ type });
+    const shape = elementFactory.createShape({ type });
 
     commandStack.execute('propertiesPanel.camunda.changeTemplate', {
-      element,
+      element: shape,
       newTemplate: template
     });
 
-    create.start(event, element);
+    if (action === CREATE_ACTION) {
+      create.start(event, shape);
+    } else if (action === APPEND_ACTION) {
+      autoPlace.append(element, shape);
+    }
+
   }
 
 }
 
 _createTemplatedElementsService.$inject = [
+  'autoPlace',
   'bpmnFactory',
   'canvas',
   'commandStack',
@@ -166,12 +233,13 @@ _createTemplatedElementsService.$inject = [
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ CustomPalette)
+/* harmony export */   "default": () => (/* binding */ PaletteExtension)
 /* harmony export */ });
 /* harmony import */ var _TemplateSymbol__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./TemplateSymbol */ "./client/bpmn-js-extension/TemplateSymbol.js");
 
 
-class CustomPalette {
+
+class PaletteExtension {
   constructor(eventBus, palette, translate) {
     this.eventBus = eventBus;
     this.translate = translate;
@@ -188,12 +256,12 @@ class CustomPalette {
     function createFromElementTemplate() {
       return function(event) {
 
-        eventBus.fire('create.from-element-template', { paletteEvent: event });
+        eventBus.fire('templates-palette-plugin.create-from-element-template', { originEvent: event });
       };
     }
 
     return {
-      'create.from-element-template': {
+      'templates-palette-plugin.create-from-element-template': {
         group: 'extension',
         imageUrl: _TemplateSymbol__WEBPACK_IMPORTED_MODULE_0__.TEMPLATE_SYMBOL,
         title: translate('Create Task from Element Template'),
@@ -206,7 +274,7 @@ class CustomPalette {
   }
 }
 
-CustomPalette.$inject = [
+PaletteExtension.$inject = [
   'eventBus',
   'palette',
   'translate'
@@ -242,15 +310,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _CreateTemplatedElementsService__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./CreateTemplatedElementsService */ "./client/bpmn-js-extension/CreateTemplatedElementsService.js");
-/* harmony import */ var _PaletteExtension__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PaletteExtension */ "./client/bpmn-js-extension/PaletteExtension.js");
+/* harmony import */ var _ContextPadExtension__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ContextPadExtension */ "./client/bpmn-js-extension/ContextPadExtension.js");
+/* harmony import */ var _CreateTemplatedElementsService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./CreateTemplatedElementsService */ "./client/bpmn-js-extension/CreateTemplatedElementsService.js");
+/* harmony import */ var _PaletteExtension__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./PaletteExtension */ "./client/bpmn-js-extension/PaletteExtension.js");
+
 
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  __init__: [ 'createTemplatedElementsService', 'paletteExtension' ],
-  createTemplatedElementsService: [ 'type', _CreateTemplatedElementsService__WEBPACK_IMPORTED_MODULE_0__.default ],
-  paletteExtension: [ 'type', _PaletteExtension__WEBPACK_IMPORTED_MODULE_1__.default]
+  __init__: [ 'contextPadExtension', 'createTemplatedElementsService', 'paletteExtension' ],
+  contextPadExtension: [ 'type', _ContextPadExtension__WEBPACK_IMPORTED_MODULE_0__.default ],
+  createTemplatedElementsService: [ 'type', _CreateTemplatedElementsService__WEBPACK_IMPORTED_MODULE_1__.default ],
+  paletteExtension: [ 'type', _PaletteExtension__WEBPACK_IMPORTED_MODULE_2__.default]
 });
 
 

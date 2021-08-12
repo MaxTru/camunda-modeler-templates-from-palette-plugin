@@ -18,3 +18,12 @@
 .templates-palette-plugin > select {
   width: 90%;
 }
+
+.djs-context-pad [data-action="templates-palette-plugin.append-from-element-template"] img {
+  width: 22px;
+  height: 22px;
+}
+
+.djs-context-pad .templates-palette-plugin {
+  position: absolute !important;
+}
