@@ -69,7 +69,7 @@ ContextPadExtension.$inject = [
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ _createTemplatedElementsService)
+/* harmony export */   "default": () => (/* binding */ CreateTemplatedElementsService)
 /* harmony export */ });
 /* harmony import */ var domify__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! domify */ "./node_modules/domify/index.js");
 /* harmony import */ var domify__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(domify__WEBPACK_IMPORTED_MODULE_0__);
@@ -89,7 +89,7 @@ const emptyOption = domify__WEBPACK_IMPORTED_MODULE_0___default()('<option value
 emptyOption.innerText = '<select one>';
 
 
-class _createTemplatedElementsService {
+class CreateTemplatedElementsService {
 
   constructor(autoPlace, bpmnFactory, canvas, commandStack, create, elementFactory, elementTemplates, eventBus) {
     this.autoPlace = autoPlace;
@@ -210,7 +210,7 @@ class _createTemplatedElementsService {
 
 }
 
-_createTemplatedElementsService.$inject = [
+CreateTemplatedElementsService.$inject = [
   'autoPlace',
   'bpmnFactory',
   'canvas',

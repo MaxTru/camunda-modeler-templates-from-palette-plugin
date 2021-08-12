@@ -14,7 +14,7 @@ const emptyOption = domify('<option value=""></option>');
 emptyOption.innerText = '<select one>';
 
 
-export default class _createTemplatedElementsService {
+export default class CreateTemplatedElementsService {
 
   constructor(autoPlace, bpmnFactory, canvas, commandStack, create, elementFactory, elementTemplates, eventBus) {
     this.autoPlace = autoPlace;
@@ -135,7 +135,7 @@ export default class _createTemplatedElementsService {
 
 }
 
-_createTemplatedElementsService.$inject = [
+CreateTemplatedElementsService.$inject = [
   'autoPlace',
   'bpmnFactory',
   'canvas',
